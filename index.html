@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Lull</title>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lull">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Pirata+One&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--card:#0A0A0A;--line:#2A2A2A;--line2:#3A3A3A;--text:#EDEDED;--muted:#8C8C8C;--red:#FF2A2A;--blood:#B5121B;
+--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;overscroll-behavior:none}
+button{font-family:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input{font-family:inherit}
+[hidden]{display:none!important}
+.goth{font-family:'Pirata One',serif;font-weight:400}
+.mono{font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.1em}
+.muted{color:var(--muted)}
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.scroll::-webkit-scrollbar,.row::-webkit-scrollbar{display:none}
+#app{max-width:480px;margin:0 auto;height:100%;position:relative;overflow:hidden}
+
+/* setup */
+#setup{height:100%;padding:calc(var(--st) + 40px) 22px calc(var(--sb) + 30px);display:flex;flex-direction:column;gap:20px}
+#setup h1{margin:0;font-size:64px;line-height:.9;color:var(--red)}
+.step{border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.45}
+.step b{font-family:'Space Mono',monospace;color:var(--red);font-size:12px;letter-spacing:.1em}
+.code{font-family:'Space Mono',monospace;font-size:12px;background:#111;border:1px solid var(--line2);padding:10px;word-break:break-all}
+.field{height:50px;border:1px solid var(--line2);background:#000;color:var(--text);padding:0 14px;font-size:16px;width:100%}
+.btn{height:50px;background:var(--red);color:#000;font-family:'Space Mono',monospace;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:14px;width:100%}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line2)}
+.err{border:1px solid var(--red);color:var(--red);padding:12px;font-size:14px}
+a{color:var(--red)}
+
+/* main */
+#main{height:100%;position:relative}
+#view{position:absolute;inset:0;padding:calc(var(--st) + 22px) 20px calc(var(--sb) + 170px)}
+.vstack{display:flex;flex-direction:column;gap:26px}
+.hdr{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:40px;line-height:1;color:var(--red)}
+.sq{width:44px;height:44px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;flex:none}
+.h1{margin:0;font-size:46px;line-height:.95}
+.h2{margin:0;font-size:30px;line-height:1}
+.row{display:flex;gap:12px;overflow-x:auto;margin:0 -20px;padding:0 20px;scrollbar-width:none}
+.chip{flex:none;height:44px;padding:0 16px;border:1px solid var(--line2);font-family:'Space Mono',monospace;font-size:13px;text-transform:uppercase;letter-spacing:.08em}
+.chip.on{background:var(--red);border-color:var(--red);color:#000;font-weight:700}
+.tile{flex:none;width:140px;display:flex;flex-direction:column;gap:8px;text-align:left}
+.tile .t{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .s{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.art{display:block;object-fit:cover;background:var(--blood)}
+.art.ph{background:repeating-linear-gradient(0deg,var(--blood) 0 18px,#000 18px 28px)}
+.a140{width:140px;height:140px}.a56{width:56px;height:56px;flex:none}.a44{width:44px;height:44px;flex:none}
+.round{border-radius:50%}
+.list{display:flex;flex-direction:column}
+.item{display:flex;align-items:center;gap:14px;min-height:72px;border-bottom:1px solid #1A1A1A;text-align:left;width:100%}
+.item .meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.item .t{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item.now .t{color:var(--red)}
+.cont{border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;text-align:left;width:100%}
+.cont .cover{height:200px;width:100%;object-fit:cover;display:block}
+.cont .tag{position:absolute;left:12px;top:12px;background:#000;padding:6px 8px;font-size:11px;font-weight:700}
+.cont .body{display:flex;align-items:center;gap:14px;padding:16px}
+.playsq{width:56px;height:56px;background:var(--red);display:flex;align-items:center;justify-content:center;flex:none}
+.bar{height:3px;background:var(--line)}.bar i{display:block;height:3px;background:var(--red);width:0}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line2)}
+.tabs button{height:44px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tabs button.on{background:var(--red);color:#000}
+.empty{border:1px dashed var(--line2);padding:18px;font-size:14px;color:var(--muted);line-height:1.5}
+
+/* mini + nav */
+#mini{position:absolute;left:12px;right:12px;bottom:calc(var(--sb) + 92px);height:60px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:12px;padding:0 4px 0 8px;overflow:hidden}
+#mini .meta{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left}
+#mini .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mini .s{font-size:11px}
+#miniBar{position:absolute;left:0;bottom:0;height:2px;background:var(--red);width:0}
+nav{position:absolute;left:0;right:0;bottom:0;height:calc(var(--sb) + 84px);background:#000;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding-top:8px}
+nav button{width:80px;height:48px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+nav button.on{color:var(--red);font-weight:700}
+
+/* now playing */
+#np{position:absolute;inset:0;background:#000;z-index:5;display:flex;flex-direction:column;gap:18px;padding:calc(var(--st) + 14px) 24px calc(var(--sb) + 24px);transform:translateY(100%);transition:transform .28s ease}
+#np.open{transform:none}
+#npArt{width:min(100%,44vh);align-self:center;aspect-ratio:1;object-fit:cover;display:block}
+#npTitle{margin:0;font-size:38px;line-height:.95;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#npBarWrap{padding:10px 0;cursor:pointer}
+#npBar{height:4px;background:var(--line);position:relative}
+#npFill{height:4px;background:var(--red);width:0}
+#npKnob{position:absolute;top:-6px;width:4px;height:16px;margin-left:-2px;background:var(--text);left:0}
+.times{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px}
+.ctrls{display:flex;justify-content:space-between;align-items:center}
+.ctrls button{width:56px;height:56px;display:flex;align-items:center;justify-content:center}
+#npPlay{width:80px;height:80px;background:var(--red);color:#000}
+.on-red{color:var(--red)!important}
+.extras{margin-top:auto;display:flex;gap:8px}
+.extras button{flex:1;height:48px;border:1px solid var(--line2);font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;overflow:hidden;padding:0 8px}
+
+/* sheet + toast */
+#sheet{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:9;display:flex;align-items:flex-end}
+#sheetBody{width:100%;max-height:75%;background:#0A0A0A;border-top:1px solid var(--red);padding:20px 20px calc(var(--sb) + 20px);display:flex;flex-direction:column;gap:14px}
+#toast{position:absolute;left:16px;right:16px;top:calc(var(--st) + 12px);z-index:10;background:var(--red);color:#000;padding:12px 14px;font-size:14px;font-weight:600}
+.search{display:flex;align-items:center;gap:10px;border:1px solid var(--line2);height:50px;padding:0 14px}
+.search input{flex:1;background:transparent;border:0;color:var(--text);font-size:16px;outline:none;height:100%}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section id="setup" class="scroll" hidden>
+  <h1 class="goth">Lull</h1>
+  <p class="mono muted" style="margin:0;font-size:12px">Connect ur Spotify · one-time setup</p>
+  <div id="setupErr" class="err" hidden></div>
+  <div id="fileWarn" class="err" hidden>This page is opened as a local file. It has to be hosted at an https:// address for Spotify login to work. Check the setup steps you got with it.</div>
+  <div class="step"><b>01</b>Open <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a>, log in, and tap <strong>Create app</strong>. Name and description can be anything.</div>
+  <div class="step"><b>02</b>Under <strong>Redirect URIs</strong>, paste this exact address and tap Add:
+    <div class="code" id="redir"></div>
+    <button class="btn ghost" data-act="copyredir" style="height:44px">Copy address</button>
+    Then tick <strong>Web API</strong> and <strong>Web Playback SDK</strong>, accept the terms and Save.</div>
+  <div class="step"><b>03</b>Open the app's <strong>Settings</strong>, copy the <strong>Client ID</strong> and paste it here:
+    <label for="cid" class="mono muted" style="font-size:11px">Client ID</label>
+    <input id="cid" class="field" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="32 letters and numbers">
+  </div>
+  <button class="btn" data-act="connect">Connect Spotify</button>
+  <p class="muted" style="font-size:12px;line-height:1.5;margin:0">Needs Spotify Premium. Friends (max 5) must be added under User Management in your Spotify app's dashboard first.</p>
+</section>
+
+<main id="main" hidden>
+  <div id="view" class="scroll"></div>
+
+  <button id="mini" data-act="opennp" hidden aria-label="Open now playing">
+    <img id="miniArt" class="art a44" alt="">
+    <span class="meta"><span class="t" id="miniT"></span><span class="s mono muted" id="miniS"></span></span>
+    <span class="sq" style="border:0" data-act="toggle" role="button" aria-label="Play or pause" id="miniBtn"></span>
+    <span id="miniBar"></span>
+  </button>
+
+  <nav>
+    <button data-act="go" data-v="home" id="nav-home"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v10h-6v-6h-6v6H3z"/></svg>Home</button>
+    <button data-act="go" data-v="search" id="nav-search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Search</button>
+    <button data-act="go" data-v="library" id="nav-library"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4v16M10 4v16M15 5l4 15"/></svg>Library</button>
+  </nav>
+</main>
+
+<section id="np" aria-label="Now playing">
+  <div class="hdr">
+    <button class="sq" data-act="closenp" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0">
+      <span class="mono muted" style="font-size:10px">Playing on</span>
+      <span class="mono on-red" style="font-size:12px;font-weight:700;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="npDev">—</span>
+    </div>
+    <button class="sq" data-act="devices" aria-label="Choose device"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="6" y="2" width="12" height="20"/><circle cx="12" cy="15" r="3"/><path d="M12 6h.01"/></svg></button>
+  </div>
+  <img id="npArt" class="art" alt="">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+      <h2 id="npTitle" class="goth">—</h2>
+      <span id="npArtist" class="mono muted" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+    </div>
+    <button class="sq" data-act="like" id="npLike" aria-label="Like" style="width:48px;height:48px"></button>
+  </div>
+  <div>
+    <div id="npBarWrap"><div id="npBar"><div id="npFill"></div><div id="npKnob"></div></div></div>
+    <div class="times"><span id="npPos">0:00</span><span id="npDur">0:00</span></div>
+  </div>
+  <div class="ctrls">
+    <button data-act="shuffle" id="npShuf" aria-label="Shuffle" class="muted"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
+    <button data-act="prev" aria-label="Previous"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button data-act="toggle" id="npPlay" aria-label="Play or pause"></button>
+    <button data-act="next" aria-label="Next"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    <button data-act="repeat" id="npRep" aria-label="Repeat" class="muted"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11V6h18M7 22l-4-4 4-4"/><path d="M21 13v5H3"/></svg></button>
+  </div>
+  <div class="extras">
+    <button data-act="queue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Up next</button>
+    <button data-act="opensp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg>Open in Spotify</button>
+  </div>
+</section>
+
+<div id="sheet" hidden data-act="closesheet"><div id="sheetBody" class="scroll"></div></div>
+<div id="toast" hidden role="status"></div>
+</div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch(e){} }
+};
+const REDIRECT = location.origin + location.pathname.replace(/index\.html$/, '');
+const SCOPES = ['user-read-private','user-read-email','streaming','user-read-playback-state','user-modify-playback-state','user-read-currently-playing','user-read-recently-played','playlist-read-private','playlist-read-collaborative','user-library-read','user-library-modify','user-follow-read'].join(' ');
+const MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const MOODS = [['Rage','rage'],['Slow burn','slow burn'],['After hours','late night'],['Mosh','mosh pit'],['Dark','dark trap'],['Vamp','vampire']];
+
+let clientId = store.get('lull_cid');
+let tok = null; try { tok = JSON.parse(store.get('lull_tok') || 'null'); } catch(e){}
+
+const st = { me:null, view:'home', mood:null, moodItems:[], playlists:[], recent:[], player:null, pollAt:0,
+  liked:false, likedFor:null, libTab:'playlists', lib:{}, sdk:null, sdkDevice:null, q:'', results:null, liked50:[] };
+
+/* ---------- icons ---------- */
+const I = {
+  play:'<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 4.5v15l12-7.5z"/></svg>',
+  pause:'<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>',
+  playS:'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 4.5v15l12-7.5z"/></svg>',
+  pauseS:'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>',
+  heart:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1.1 8.2 3.4 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.6 0 5.9 3.7 4.5 7.2C19.5 16.4 12 21 12 21z"/></svg>',
+  heartF:'<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1.1 8.2 3.4 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.6 0 5.9 3.7 4.5 7.2C19.5 16.4 12 21 12 21z"/></svg>',
+  search:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>'
+};
+
+/* ---------- helpers ---------- */
+function pic(images, cls, big){
+  let u = null;
+  if (images && images.length) u = big ? images[0].url : (images.find(i => i.width && i.width <= 320) || images[images.length - 1] || images[0]).url;
+  return u ? `<img class="art ${cls}" src="${esc(u)}" alt="" loading="lazy">` : `<span class="art ph ${cls}" aria-hidden="true"></span>`;
+}
+const fmt = ms => { ms = Math.max(0, ms || 0); const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const artists = t => (t && t.artists ? t.artists.map(a => a.name).join(', ') : (t && t.show ? t.show.name : ''));
+let toastT;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3800); }
+function handleErr(e){
+  console.warn(e);
+  if (e && e.reason === 'PREMIUM_REQUIRED' || /premium/i.test(e && e.message || '')) return toast('Playback control needs Spotify Premium.');
+  if (e && e.status === 429) return toast('Spotify says slow down. Try again in a minute.');
+  toast((e && e.message) || 'Something went wrong.');
+}
+
+/* ---------- auth (PKCE) ---------- */
+function rand(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a, b => ('0' + b.toString(16)).slice(-2)).join(''); }
+async function challenge(v){
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(d))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function login(){
+  const v = rand(48); store.set('lull_ver', v);
+  const p = new URLSearchParams({ response_type:'code', client_id:clientId, scope:SCOPES, code_challenge_method:'S256', code_challenge: await challenge(v), redirect_uri: REDIRECT });
+  location.href = 'https://accounts.spotify.com/authorize?' + p.toString();
+}
+async function tokenReq(params){
+  const r = await fetch('https://accounts.spotify.com/api/token', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: new URLSearchParams(params) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error_description || j.error || 'Login failed');
+  tok = { access: j.access_token, refresh: j.refresh_token || (tok && tok.refresh), exp: Date.now() + ((j.expires_in || 3600) - 60) * 1000 };
+  store.set('lull_tok', JSON.stringify(tok));
+}
+let refreshing = null;
+function refresh(){
+  if (!refreshing) refreshing = tokenReq({ grant_type:'refresh_token', refresh_token: tok.refresh, client_id: clientId })
+    .catch(e => { logout('Session expired. Connect again.'); throw e; })
+    .finally(() => { refreshing = null; });
+  return refreshing;
+}
+async function getToken(){ if (!tok) throw new Error('Not logged in'); if (Date.now() > tok.exp) await refresh(); return tok.access; }
+function logout(msg){ tok = null; store.set('lull_tok', null); try { st.sdk && st.sdk.disconnect(); } catch(e){} showSetup(msg); }
+
+async function api(path, opts, retry){
+  opts = opts || {}; if (retry === undefined) retry = true;
+  const url = 'https://api.spotify.com/v1' + path + (opts.query ? '?' + new URLSearchParams(opts.query).toString() : '');
+  const headers = { Authorization: 'Bearer ' + await getToken() };
+  if (opts.body) headers['Content-Type'] = 'application/json';
+  const r = await fetch(url, { method: opts.method || 'GET', headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if (r.status === 401 && retry){ await refresh(); return api(path, opts, false); }
+  if (r.status === 204 || r.status === 202) return null;
+  const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch(e){}
+  if (!r.ok){ const e = new Error((j && j.error && (j.error.message || j.error)) || ('Error ' + r.status)); e.status = r.status; e.reason = j && j.error && j.error.reason; throw e; }
+  return j;
+}
+
+/* ---------- setup screen ---------- */
+function showSetup(msg){
+  $('#main').hidden = true; $('#np').classList.remove('open');
+  $('#setup').hidden = false;
+  $('#redir').textContent = REDIRECT;
+  $('#cid').value = clientId || '';
+  $('#fileWarn').hidden = location.protocol !== 'file:';
+  $('#setupErr').hidden = !msg; $('#setupErr').textContent = msg || '';
+}
+
+/* ---------- views ---------- */
+function go(v){
+  st.view = v;
+  ['home','search','library'].forEach(x => $('#nav-' + x).classList.toggle('on', x === v));
+  $('#view').scrollTop = 0;
+  if (v === 'home'){ renderHome(); loadHome(); }
+  if (v === 'search') renderSearch();
+  if (v === 'library') renderLibrary();
+}
+
+async function loadHome(){
+  const res = await Promise.allSettled([ api('/me/playlists', { query:{ limit:20 } }), api('/me/player/recently-played', { query:{ limit:30 } }) ]);
+  if (res[0].value) st.playlists = (res[0].value.items || []).filter(Boolean);
+  if (res[1].value){ const seen = new Set(); st.recent = (res[1].value.items || []).map(i => i.track).filter(t => t && t.id && !seen.has(t.id) && seen.add(t.id)); }
+  if (st.view === 'home') renderHome();
+}
+function renderHome(){
+  const d = new Date();
+  const when = ['sun','mon','tue','wed','thu','fri','sat'][d.getDay()] + ' // ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  const name = st.me && st.me.display_name ? st.me.display_name : '';
+  const cur = st.player && st.player.item ? st.player.item : st.recent[0];
+  const isCur = !!(st.player && st.player.item && cur && st.player.item.id === cur.id);
+  let h = `<div class="vstack">
+  <div class="hdr"><span class="goth logo">Lull</span><button class="sq mono" style="font-weight:700;font-size:15px;letter-spacing:0" data-act="profile" aria-label="Account">${esc((name[0] || 'U').toUpperCase())}</button></div>
+  <div style="display:flex;flex-direction:column;gap:6px"><span class="mono muted" style="font-size:12px">${esc(when)}</span><h1 class="goth h1">Pick ur poison</h1></div>
+  <div class="row" style="gap:8px">${MOODS.map(m => `<button class="chip ${st.mood === m[0] ? 'on' : ''}" data-act="mood" data-m="${esc(m[0])}">${esc(m[0])}</button>`).join('')}</div>`;
+  if (st.mood){
+    h += `<div style="display:flex;flex-direction:column;gap:14px"><h2 class="goth h2">${esc(st.mood)} mode</h2>` +
+      (st.moodItems.length ? `<div class="row">${st.moodItems.map(p => tile(p.images, p.name, p.owner && p.owner.display_name, p.uri)).join('')}</div>` : `<div class="empty">Loading…</div>`) + `</div>`;
+  }
+  if (cur){
+    const al = cur.album || {};
+    h += `<button class="cont" data-act="${isCur ? 'toggle' : 'playtrack'}" data-uri="${esc(cur.uri)}">
+      <span style="position:relative;display:block">${al.images && al.images.length ? `<img class="cover art" src="${esc(al.images[0].url)}" alt="">` : `<span class="cover art ph" style="height:200px"></span>`}<span class="tag mono">${isCur ? 'Now playing' : 'Pick up where u left off'}</span></span>
+      <span class="body"><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+        <span class="goth" style="font-size:28px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(cur.name)}</span>
+        <span class="mono muted" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(artists(cur))}</span>
+        <span class="bar" style="margin-top:10px"><i id="contBar"></i></span></span>
+        <span class="playsq" style="color:#000">${isCur && st.player.is_playing ? I.pauseS : I.playS}</span></span></button>`;
+  }
+  h += `<div style="display:flex;flex-direction:column;gap:14px"><div class="hdr"><h2 class="goth h2">Ur playlists</h2><button class="mono muted" style="font-size:12px;min-height:44px" data-act="go" data-v="library">See all</button></div>` +
+    (st.playlists.length ? `<div class="row">${st.playlists.map(p => tile(p.images, p.name, (p.items || p.tracks) ? ((p.items || p.tracks).total + ' songs') : 'Playlist', p.uri)).join('')}</div>` : `<div class="empty">No playlists yet.</div>`) + `</div>`;
+  if (st.recent.length){
+    h += `<div style="display:flex;flex-direction:column;gap:6px"><h2 class="goth h2">Recently played</h2><div class="list">${st.recent.slice(0, 10).map(t => trackRow(t, 'playtrack')).join('')}</div></div>`;
+  }
+  h += `</div>`;
+  $('#view').innerHTML = h;
+}
+function tile(images, title, sub, uri, round){
+  return `<button class="tile" data-act="playctx" data-uri="${esc(uri)}">${pic(images, 'a140' + (round ? ' round' : ''))}<span class="t">${esc(title)}</span><span class="s">${esc(sub || '')}</span></button>`;
+}
+function trackRow(t, act, extra){
+  const now = st.player && st.player.item && st.player.item.id === t.id;
+  return `<button class="item ${now ? 'now' : ''}" data-act="${act}" data-uri="${esc(t.uri)}" ${extra || ''}>${pic(t.album && t.album.images, 'a56')}<span class="meta"><span class="t">${esc(t.name)}</span><span class="s">${esc(artists(t))}</span></span></button>`;
+}
+function rowItem(images, title, sub, attrs, round){
+  return `<button class="item" ${attrs}>${pic(images, 'a56' + (round ? ' round' : ''))}<span class="meta"><span class="t">${esc(title)}</span><span class="s">${esc(sub || '')}</span></span></button>`;
+}
+
+async function pickMood(m){
+  if (st.mood === m){ st.mood = null; return renderHome(); }
+  st.mood = m; st.moodItems = []; renderHome();
+  const q = (MOODS.find(x => x[0] === m) || [m, m])[1];
+  try { const r = await api('/search', { query:{ q, type:'playlist', limit:10 } }); st.moodItems = ((r && r.playlists && r.playlists.items) || []).filter(Boolean); }
+  catch(e){ handleErr(e); }
+  if (st.view === 'home' && st.mood === m) renderHome();
+}
+
+/* search */
+function renderSearch(){
+  $('#view').innerHTML = `<div class="vstack"><h1 class="goth h1">Search</h1>
+    <label class="search">${I.search}<input id="q" type="search" placeholder="Songs, artists, albums" autocomplete="off" aria-label="Search" value="${esc(st.q)}"></label>
+    <div id="results"></div></div>`;
+  $('#q').addEventListener('input', e => { st.q = e.target.value; clearTimeout(searchT); searchT = setTimeout(doSearch, 350); });
+  renderResults();
+}
+let searchT;
+async function doSearch(){
+  const q = st.q.trim();
+  if (!q){ st.results = null; return renderResults(); }
+  try {
+    const r = await api('/search', { query:{ q, type:'track,artist,album', limit:10 } });
+    if (q === st.q.trim()){ st.results = r || {}; renderResults(); }
+  } catch(e){ handleErr(e); }
+}
+function renderResults(){
+  const box = $('#results'); if (!box) return;
+  const r = st.results;
+  if (!r){ box.innerHTML = `<div class="empty">Type to search Spotify.</div>`; return; }
+  const tr = ((r.tracks && r.tracks.items) || []).filter(Boolean);
+  const ar = ((r.artists && r.artists.items) || []).filter(Boolean);
+  const al = ((r.albums && r.albums.items) || []).filter(Boolean);
+  let h = '<div class="vstack">';
+  if (tr.length) h += `<div><h2 class="goth h2" style="margin-bottom:6px">Songs</h2><div class="list">${tr.map((t, i) => trackRow(t, 'playsearch', `data-i="${i}"`)).join('')}</div></div>`;
+  if (ar.length) h += `<div style="display:flex;flex-direction:column;gap:14px"><h2 class="goth h2">Artists</h2><div class="row">${ar.map(a => tile(a.images, a.name, 'Artist', a.uri, true)).join('')}</div></div>`;
+  if (al.length) h += `<div style="display:flex;flex-direction:column;gap:14px"><h2 class="goth h2">Albums</h2><div class="row">${al.map(a => tile(a.images, a.name, artists(a), a.uri)).join('')}</div></div>`;
+  if (!tr.length && !ar.length && !al.length) h += `<div class="empty">Nothing found.</div>`;
+  box.innerHTML = h + '</div>';
+}
+
+/* library */
+const LIB = {
+  playlists: { label:'Lists', load: async () => (await api('/me/playlists', { query:{ limit:50 } })).items.filter(Boolean).map(p => ({ images:p.images, title:p.name, sub:'Playlist · ' + ((p.owner && p.owner.display_name) || ''), attrs:`data-act="playctx" data-uri="${esc(p.uri)}"` })) },
+  liked: { label:'Liked', load: async () => { const r = await api('/me/tracks', { query:{ limit:50 } }); st.liked50 = r.items.map(i => i.track).filter(Boolean); return st.liked50.map((t, i) => ({ images:t.album && t.album.images, title:t.name, sub:artists(t), attrs:`data-act="playliked" data-i="${i}"` })); } },
+  albums: { label:'Albums', load: async () => (await api('/me/albums', { query:{ limit:50 } })).items.map(i => i.album).filter(Boolean).map(a => ({ images:a.images, title:a.name, sub:'Album · ' + artists(a), attrs:`data-act="playctx" data-uri="${esc(a.uri)}"` })) },
+  artists: { label:'Artists', load: async () => (await api('/me/following', { query:{ type:'artist', limit:50 } })).artists.items.filter(Boolean).map(a => ({ images:a.images, title:a.name, sub:'Artist', attrs:`data-act="playctx" data-uri="${esc(a.uri)}"`, round:true })) }
+};
+function renderLibrary(){
+  const tab = st.libTab, data = st.lib[tab];
+  let body;
+  if (data === undefined){ body = `<div class="empty">Loading…</div>`; loadLib(tab); }
+  else if (data && data.error) body = `<div class="empty">${esc(data.error)}</div>`;
+  else if (!data.length) body = `<div class="empty">Nothing here yet.</div>`;
+  else body = `<div class="list">${data.map(x => rowItem(x.images, x.title, x.sub, x.attrs, x.round)).join('')}</div>`;
+  $('#view').innerHTML = `<div class="vstack"><div class="hdr"><h1 class="goth h1">Ur library</h1><button class="sq" data-act="libreload" aria-label="Refresh"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button></div>
+    <div class="tabs">${Object.keys(LIB).map(k => `<button class="${k === tab ? 'on' : ''}" data-act="libtab" data-t="${k}">${LIB[k].label}</button>`).join('')}</div>${body}</div>`;
+}
+async function loadLib(tab){
+  try { st.lib[tab] = await LIB[tab].load(); }
+  catch(e){ console.warn(e); st.lib[tab] = { error: e.status === 403 ? "Spotify doesn't let personal apps load this right now." : (e.message || "Couldn't load this.") }; }
+  if (st.view === 'library' && st.libTab === tab) renderLibrary();
+}
+
+/* ---------- player ---------- */
+async function poll(){
+  try {
+    const p = await api('/me/player', { query:{ additional_types:'episode' } });
+    st.player = p; st.pollAt = Date.now();
+    if (p && p.item && p.item.id !== st.likedFor){ st.likedFor = p.item.id; checkLiked(p.item); if (st.view === 'home') renderHome(); }
+    renderPlayer();
+  } catch(e){ if (e.status !== 429) console.warn(e); }
+}
+function pos(){
+  const p = st.player; if (!p || !p.item) return 0;
+  return Math.min(p.item.duration_ms, (p.progress_ms || 0) + (p.is_playing ? Date.now() - st.pollAt : 0));
+}
+function renderPlayer(){
+  const p = st.player, it = p && p.item;
+  $('#mini').hidden = !it;
+  if (!it){ $('#npTitle').textContent = 'Nothing playing'; $('#npArtist').textContent = 'Pick something to play'; $('#npDev').textContent = '—'; $('#npPlay').innerHTML = I.play; return; }
+  const imgs = (it.album && it.album.images) || it.images || [];
+  const big = imgs[0] ? imgs[0].url : '', small = imgs.length ? imgs[imgs.length - 1].url : '';
+  if ($('#npArt').getAttribute('src') !== big) $('#npArt').src = big;
+  if ($('#miniArt').getAttribute('src') !== small) $('#miniArt').src = small || big;
+  $('#miniT').textContent = it.name; $('#miniS').textContent = artists(it);
+  $('#npTitle').textContent = it.name; $('#npArtist').textContent = artists(it);
+  $('#npDev').textContent = p.device ? p.device.name : '—';
+  $('#npPlay').innerHTML = p.is_playing ? I.pause : I.play;
+  $('#npPlay').setAttribute('aria-label', p.is_playing ? 'Pause' : 'Play');
+  $('#miniBtn').innerHTML = p.is_playing ? I.pauseS : I.playS;
+  $('#npShuf').classList.toggle('on-red', !!p.shuffle_state);
+  $('#npRep').classList.toggle('on-red', p.repeat_state && p.repeat_state !== 'off');
+  $('#npRep').setAttribute('aria-label', 'Repeat: ' + (p.repeat_state || 'off'));
+  $('#npLike').innerHTML = st.liked ? I.heartF : I.heart;
+  $('#npLike').classList.toggle('on-red', st.liked);
+  tick();
+}
+function tick(){
+  const p = st.player; if (!p || !p.item) return;
+  const d = p.item.duration_ms || 1, x = pos(), pct = (x / d * 100) + '%';
+  $('#npFill').style.width = pct; $('#npKnob').style.left = pct; $('#miniBar').style.width = pct;
+  const cb = $('#contBar'); if (cb) cb.style.width = pct;
+  $('#npPos').textContent = fmt(x); $('#npDur').textContent = '-' + fmt(d - x);
+}
+async function play(body){
+  try { await api('/me/player/play', { method:'PUT', body }); }
+  catch(e){
+    if (e.status !== 404) throw e;
+    let dev = st.sdkDevice;
+    if (!dev){ const d = await api('/me/player/devices'); const list = (d && d.devices) || []; dev = list[0] && list[0].id; }
+    if (!dev){ openDevices(true); return; }
+    await api('/me/player/play', { method:'PUT', body, query:{ device_id: dev } });
+  }
+  setTimeout(poll, 600);
+}
+async function ctl(fn){ try { await fn(); setTimeout(poll, 400); } catch(e){ if (e.status === 404) openDevices(true); else handleErr(e); } }
+function toggle(){
+  const p = st.player;
+  if (p && p.item){ p.progress_ms = pos(); st.pollAt = Date.now(); p.is_playing = !p.is_playing; renderPlayer(); }
+  ctl(() => (p && !p.is_playing) ? api('/me/player/pause', { method:'PUT' }) : play());
+}
+async function checkLiked(item){
+  st.liked = false;
+  if (item.type !== 'track'){ renderPlayer(); return; }
+  try { const r = await api('/me/library/contains', { query:{ uris: item.uri } }); st.liked = !!(Array.isArray(r) ? r[0] : r); }
+  catch(e){ try { const r = await api('/me/tracks/contains', { query:{ ids: item.id } }); st.liked = !!r[0]; } catch(_){} }
+  renderPlayer();
+}
+async function toggleLike(){
+  const it = st.player && st.player.item; if (!it) return;
+  const m = st.liked ? 'DELETE' : 'PUT';
+  st.liked = !st.liked; renderPlayer();
+  try { await api('/me/library', { method:m, query:{ uris: it.uri } }); }
+  catch(e){ try { await api('/me/tracks', { method:m, query:{ ids: it.id } }); }
+    catch(e2){ st.liked = !st.liked; renderPlayer(); toast("Couldn't update ur liked songs."); return; } }
+  delete st.lib.liked;
+}
+
+/* sheets */
+function sheet(html){ $('#sheetBody').innerHTML = html; $('#sheet').hidden = false; }
+function closeSheet(){ $('#sheet').hidden = true; }
+async function openDevices(noneActive){
+  sheet(`<h2 class="goth h2">Play on</h2><div class="empty">Looking for devices…</div>`);
+  let list = [];
+  try { const d = await api('/me/player/devices'); list = (d && d.devices) || []; } catch(e){ handleErr(e); }
+  let h = `<h2 class="goth h2">Play on</h2>`;
+  if (noneActive || !list.length) h += `<div class="empty">${list.length ? 'Pick where to play.' : 'No Spotify found. Open the <strong>Spotify app</strong> on this phone, play any song for a second, then come back and hit Refresh.'}</div>`;
+  h += `<div class="list">${list.map(d => `<button class="item" data-act="transfer" data-id="${esc(d.id)}"><span class="sq ${d.is_active ? 'on-red' : ''}" aria-hidden="true">${d.is_active ? '●' : '○'}</span><span class="meta"><span class="t">${esc(d.name)}</span><span class="s">${esc(d.type)}${d.is_active ? ' · active' : ''}</span></span></button>`).join('')}</div>
+    <button class="btn ghost" data-act="devices">Refresh</button>`;
+  if (MOBILE) h += `<a class="btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="spotify:">Open Spotify app</a>`;
+  sheet(h);
+}
+async function openQueue(){
+  sheet(`<h2 class="goth h2">Up next</h2><div class="empty">Loading…</div>`);
+  try {
+    const q = await api('/me/player/queue');
+    const items = ((q && q.queue) || []).slice(0, 20);
+    sheet(`<h2 class="goth h2">Up next</h2>` + (items.length ? `<div class="list">${items.map(t => rowItem((t.album && t.album.images) || t.images, t.name, artists(t), 'disabled')).join('')}</div>` : `<div class="empty">Queue is empty.</div>`));
+  } catch(e){ closeSheet(); handleErr(e); }
+}
+function openProfile(){
+  const n = st.me ? (st.me.display_name || st.me.id) : '';
+  sheet(`<h2 class="goth h2">${esc(n || 'Account')}</h2>
+    <p class="muted" style="margin:0;font-size:14px;line-height:1.5">${MOBILE ? 'On iPhone, Lull controls the Spotify app. Keep Spotify open in the background.' : 'This browser shows up in Spotify as a device called “Lull”.'}</p>
+    <button class="btn ghost" data-act="devices">Choose device</button>
+    <button class="btn" data-act="logout">Log out</button>`);
+}
+
+/* ---------- desktop in-browser player ---------- */
+function loadSDK(){
+  if (MOBILE || st.sdkLoaded) return; st.sdkLoaded = true;
+  window.onSpotifyWebPlaybackSDKReady = () => {
+    const p = new Spotify.Player({ name:'Lull', getOAuthToken: cb => { getToken().then(cb).catch(() => {}); }, volume:0.8 });
+    p.addListener('ready', ({ device_id }) => { st.sdkDevice = device_id; });
+    p.addListener('not_ready', () => { st.sdkDevice = null; });
+    p.addListener('player_state_changed', () => setTimeout(poll, 250));
+    ['initialization_error','authentication_error','account_error'].forEach(ev => p.addListener(ev, e => console.warn(ev, e)));
+    p.connect(); st.sdk = p;
+  };
+  const s = document.createElement('script'); s.src = 'https://sdk.scdn.co/spotify-player.js'; document.body.appendChild(s);
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  if (st.sdk && st.sdk.activateElement && !st.activated){ st.activated = true; try { st.sdk.activateElement(); } catch(_){} }
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act, d = el.dataset;
+  if (a === 'closesheet' && e.target !== el) return;
+  if (el.id === 'mini' && e.target.closest('#miniBtn')) return;
+  switch (a){
+    case 'connect': {
+      const v = $('#cid').value.trim();
+      if (!/^[0-9a-f]{32}$/i.test(v)){ $('#setupErr').hidden = false; $('#setupErr').textContent = 'That Client ID looks off. It should be 32 letters and numbers.'; return; }
+      clientId = v; store.set('lull_cid', v); login(); break;
+    }
+    case 'copyredir': navigator.clipboard && navigator.clipboard.writeText(REDIRECT).then(() => toast('Copied.'), () => toast('Copy failed. Select the address and copy it.')); break;
+    case 'go': closeSheet(); go(d.v); break;
+    case 'mood': pickMood(d.m); break;
+    case 'playctx': ctl(() => play({ context_uri: d.uri })); break;
+    case 'playtrack': ctl(() => play({ uris: [d.uri] })); break;
+    case 'playsearch': { const tr = ((st.results && st.results.tracks && st.results.tracks.items) || []).filter(Boolean); ctl(() => play({ uris: tr.map(t => t.uri), offset:{ position: +d.i } })); break; }
+    case 'playliked': ctl(() => play({ uris: st.liked50.map(t => t.uri), offset:{ position: +d.i } })); break;
+    case 'toggle': e.stopPropagation(); toggle(); break;
+    case 'next': ctl(() => api('/me/player/next', { method:'POST' })); break;
+    case 'prev': ctl(() => api('/me/player/previous', { method:'POST' })); break;
+    case 'shuffle': { const s = !(st.player && st.player.shuffle_state); if (st.player) st.player.shuffle_state = s; renderPlayer(); ctl(() => api('/me/player/shuffle', { method:'PUT', query:{ state: s } })); break; }
+    case 'repeat': { const order = ['off','context','track']; const cur = (st.player && st.player.repeat_state) || 'off'; const n = order[(order.indexOf(cur) + 1) % 3]; if (st.player) st.player.repeat_state = n; renderPlayer(); toast('Repeat: ' + (n === 'context' ? 'all' : n === 'track' ? 'this song' : 'off')); ctl(() => api('/me/player/repeat', { method:'PUT', query:{ state: n } })); break; }
+    case 'like': toggleLike(); break;
+    case 'opennp': $('#np').classList.add('open'); break;
+    case 'closenp': $('#np').classList.remove('open'); break;
+    case 'devices': openDevices(false); break;
+    case 'transfer': closeSheet(); ctl(() => api('/me/player', { method:'PUT', body:{ device_ids:[d.id], play:true } })); break;
+    case 'queue': openQueue(); break;
+    case 'opensp': { const it = st.player && st.player.item; location.href = it ? it.uri : 'spotify:'; break; }
+    case 'libtab': st.libTab = d.t; renderLibrary(); break;
+    case 'libreload': delete st.lib[st.libTab]; renderLibrary(); break;
+    case 'profile': openProfile(); break;
+    case 'logout': closeSheet(); logout(); break;
+    case 'closesheet': closeSheet(); break;
+  }
+});
+$('#npBarWrap').addEventListener('click', e => {
+  const p = st.player; if (!p || !p.item) return;
+  const r = $('#npBar').getBoundingClientRect();
+  const ms = Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * p.item.duration_ms);
+  p.progress_ms = ms; st.pollAt = Date.now(); tick();
+  ctl(() => api('/me/player/seek', { method:'PUT', query:{ position_ms: ms } }));
+});
+let touchY = null;
+$('#np').addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive:true });
+$('#np').addEventListener('touchend', e => { if (touchY != null && e.changedTouches[0].clientY - touchY > 120 && !e.target.closest('#npBarWrap')) $('#np').classList.remove('open'); touchY = null; });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && tok) poll(); });
+
+/* ---------- boot ---------- */
+async function startApp(){
+  $('#setup').hidden = true; $('#main').hidden = false;
+  try { st.me = await api('/me'); }
+  catch(e){
+    if (e.status === 403) return logout("Spotify blocked this account. If it's not the account that made the app, add it under User Management in the app's dashboard. The app owner also needs Premium.");
+    if (!tok) return;
+  }
+  go('home'); poll(); loadSDK();
+  setInterval(() => { if (!document.hidden && tok) poll(); }, 4000);
+  setInterval(tick, 500);
+}
+async function boot(){
+  const q = new URLSearchParams(location.search);
+  if (q.get('error')){ history.replaceState(null, '', REDIRECT); return showSetup(q.get('error') === 'access_denied' ? 'Login was cancelled.' : 'Spotify said: ' + q.get('error')); }
+  if (q.get('code')){
+    const ver = store.get('lull_ver');
+    history.replaceState(null, '', REDIRECT);
+    if (!ver || !clientId) return showSetup('Login got lost on the way back. Open Lull from the same place you started (the home-screen icon) and connect again.');
+    try { await tokenReq({ grant_type:'authorization_code', code: q.get('code'), redirect_uri: REDIRECT, client_id: clientId, code_verifier: ver }); store.set('lull_ver', null); }
+    catch(e){ return showSetup(e.message + '. Check that the redirect address in ur Spotify dashboard matches exactly.'); }
+  }
+  if (!clientId || !tok) return showSetup();
+  startApp();
+}
+boot();
+</script>
+</body>
+</html>
